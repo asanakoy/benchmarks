@@ -14,13 +14,13 @@ from tensorpack.dataflow.dftools import *
 import augmentors
 
 
-def test_orig(dir, name, augs, batch):
+def test_orig(dir, name, augs, batch, nr_proc=50, hwm=80):
     ds = dataset.ILSVRC12(dir, name, shuffle=True)
     ds = AugmentImageComponent(ds, augs)
 
     ds = BatchData(ds, batch)
     # ds = PlasmaPutData(ds)
-    ds = PrefetchDataZMQ(ds, 50, hwm=80)
+    ds = PrefetchDataZMQ(ds, nr_proc=nr_proc, hwm=hwm)
     # ds = PlasmaGetData(ds)
     return ds
 
@@ -91,6 +91,8 @@ if __name__ == '__main__':
     parser.add_argument('--batch', type=int, default=64)
     parser.add_argument('--name', choices=['train', 'val'], default='train')
     parser.add_argument('--aug', choices=available_augmentors, required=True)
+    parser.add_argument('-j', '--njobs', type=int, default=12)
+    parser.add_argument('-hwm', '--hwm', type=int, default=80)
     args = parser.parse_args()
 
     augs = getattr(augmentors, args.aug + '_augmentor')()
@@ -102,7 +104,7 @@ if __name__ == '__main__':
             ds = test_lmdb_inference(args.data, augs, args.batch)
     else:
         if args.name == 'train':
-            ds = test_orig(args.data, args.name, augs, args.batch)
+            ds = test_orig(args.data, args.name, augs, args.batch, nr_proc=args.njobs, hwm=args.hwm)
         else:
             ds = test_inference(args.data, args.name, augs, args.batch)
     TestDataSpeed(ds, 500000, warmup=100).start()
