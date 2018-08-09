@@ -8,7 +8,7 @@ from tensorpack.dataflow import imgaug
 
 
 __all__ = ['fbresnet_augmentor', 'inference_augmentor',
-           'resizeAndLighting_augmentor']
+           'resizeAndLighting_augmentor', 'resizeOnly_augmentor']
 
 
 class GoogleNetResize(imgaug.ImageAugmentor):
